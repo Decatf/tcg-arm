@@ -21,7 +21,7 @@ LOCAL_SRC_FILES:= \
 	pcre_ucp_searchfuncs.c \
 	pcre_xclass.c
 
-LOCAL_MODULE:= libpcre
+LOCAL_MODULE:= libpcre_limboqemu
 
 LOCAL_C_INCLUDES :=				\
 	$(GLIB_TOP)/android-internal		\

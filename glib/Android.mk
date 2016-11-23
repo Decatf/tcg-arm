@@ -4,7 +4,8 @@ LOCAL_PATH := $(call my-dir)
 
 GLIB_TOP := $(LOCAL_PATH)
 
-GLIB_BUILD_STATIC := $(BUILD_STATIC)
+# GLIB_BUILD_STATIC := $(BUILD_STATIC)
+GLIB_BUILD_STATIC := true
 
 GLIB_C_INCLUDES :=			\
 	$(GLIB_TOP)			\
@@ -37,10 +38,12 @@ GLIB_SHARED_LIBRARIES :=		\
 
 GLIB_STATIC_LIBRARIES :=		\
 	$(GLIB_SHARED_LIBRARIES)	\
-	libpcre
+	libpcre_limboqemu
+
+FIXUTILS_MEM := $(ANDROID_BUILD_TOP)/external/limbocompat/limbo_compat_memove.h
+LOGUTILS := $(ANDROID_BUILD_TOP)/external/limbocompat/limbo_logutils.h
 
 include $(CLEAR_VARS)
-
 
 include $(GLIB_TOP)/glib/Android.mk
 include $(GLIB_TOP)/gthread/Android.mk

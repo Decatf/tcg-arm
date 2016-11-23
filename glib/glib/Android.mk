@@ -98,7 +98,13 @@ LOCAL_CFLAGS := \
 
 
 ifeq ($(GLIB_BUILD_STATIC),true)
+
+# LOCAL_CLANG := false
+LOCAL_CFLAGS += -Wno-format-security
+LOCAL_EXPORT_C_INCLUDE_DIRS := $(GLIB_C_INCLUDES)
+
 include $(BUILD_STATIC_LIBRARY)
+
 else
 LOCAL_STATIC_LIBRARIES := libpcre
 LOCAL_LDLIBS :=				\
@@ -106,8 +112,15 @@ LOCAL_LDLIBS :=				\
 
 #LIMBO
 LOCAL_CFLAGS += $(ARCH_CFLAGS)
+
 #FIXME: Need to find out why this is failing
 LOCAL_CFLAGS += -include $(FIXUTILS_MEM) -include $(LOGUTILS)
+
+LOCAL_CLANG := false
+LOCAL_CFLAGS += -Wno-format-security
+LOCAL_EXPORT_C_INCLUDE_DIRS := $(GLIB_C_INCLUDES)
+
+
 LOCAL_STATIC_LIBRARIES += liblimbocompat
 LOCAL_ARM_MODE := $(ARM_MODE)
 
