@@ -28,7 +28,7 @@ LOCAL_C_INCLUDES :=			\
 
 #LIMBO
 LOCAL_CFLAGS += $(ARCH_CFLAGS)
-LOCAL_CFLAGS += -include $(LOGUTILS)
+LOCAL_CFLAGS += -include limbo_logutils.h
 LOCAL_ARM_MODE := $(ARM_MODE)
 
 #No optimization for memmove

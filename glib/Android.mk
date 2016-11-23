@@ -40,8 +40,8 @@ GLIB_STATIC_LIBRARIES :=		\
 	$(GLIB_SHARED_LIBRARIES)	\
 	libpcre_limboqemu
 
-FIXUTILS_MEM := $(ANDROID_BUILD_TOP)/external/limbocompat/limbo_compat_memove.h
-LOGUTILS := $(ANDROID_BUILD_TOP)/external/limbocompat/limbo_logutils.h
+FIXUTILS_MEM := $(LOCAL_PATH)/../compat/limbo_compat_memove.h
+LOGUTILS := $(LOCAL_PATH)/../compat/limbo_logutils.h
 
 include $(CLEAR_VARS)
 

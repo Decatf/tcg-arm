@@ -6,5 +6,5 @@
 
 void*  memcpy(void * destination, const void * source, size_t length){
 //	LOGV("Length = %d", length);
-	memmove(destination, source, length);
+	return memmove(destination, source, length);
 }
