@@ -19,7 +19,7 @@ LOCAL_SRC_FILES := \
 
 #$(NDK_ROOT)/sources/android/cpufeatures/cpu-features.c
 
-LOCAL_MODULE := limbocompat
+LOCAL_MODULE := liblimbocompat
 
 LOCAL_C_INCLUDES :=			\
 	$(LOCAL_PATH)/.. \
