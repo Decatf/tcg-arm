@@ -29,13 +29,15 @@
 
 bool initialized = false;
 const char *cpu_model = NULL;
-pthread_mutex_t exec_lock = PTHREAD_MUTEX_INITIALIZER;
+
+#define N_CPUS 2
+CPUState *local_cpus[N_CPUS];
+pthread_mutex_t local_cpu_lock[2];
 
 __attribute__((visibility("default")))
 int init_tcg_arm(void)
 {
     CPUArchState *env;
-    CPUState *cpu;
     char **target_environ, **wrk;
     int i;
     int ret;
@@ -57,15 +59,24 @@ int init_tcg_arm(void)
     }
 
     tcg_exec_init(0);
-    /* NOTE: we need to init the CPU at this stage to get
-       qemu_host_page_size */
-    cpu = cpu_init(cpu_model);
-    if (!cpu) {
-        fprintf(stderr, "Unable to find CPU definition\n");
-        exit(EXIT_FAILURE);
+
+    for (int i = 0; i < N_CPUS; i++)
+    {
+        CPUState *cpu;
+
+        /* NOTE: we need to init the CPU at this stage to get
+           qemu_host_page_size */
+        cpu = cpu_init(cpu_model);
+        if (!cpu) {
+            fprintf(stderr, "Unable to find CPU definition\n");
+            exit(EXIT_FAILURE);
+        }
+        env = cpu->env_ptr;
+        cpu_reset(cpu);
+
+        local_cpus[i] = cpu;
+        pthread_mutex_init(&local_cpu_lock[i], NULL);
     }
-    env = cpu->env_ptr;
-    cpu_reset(cpu);
 
 #if !defined(CONFIG_SOFTMMU)
     /* Now that we've loaded the binary, GUEST_BASE is fixed.  Delay
@@ -76,10 +87,40 @@ int init_tcg_arm(void)
 
     use_icount = 0;
 
-    current_cpu = cpu;
+    current_cpu = NULL;
     initialized = true;
     return initialized;
 }
+
+inline int acquire_cpu(void)
+{
+    int cpuid;
+    do {
+        for (int i = 0; i < N_CPUS; i++)
+        {
+            int res;
+            res = pthread_mutex_trylock(&local_cpu_lock[i]);
+
+            if (!res) {
+                cpuid = i;
+                break;
+            }
+        }
+
+        if (cpuid < 0)
+            sched_yield();
+    } while (cpuid == -1);
+    return cpuid;
+}
+
+inline void release_cpu(int cpuid)
+{
+    if (cpuid < 0 || cpuid >= N_CPUS)
+        return;
+    pthread_mutex_unlock(&local_cpu_lock[cpuid]);
+    cpuid = -1;
+}
+
 __attribute__((visibility("default")))
 void exec(
     uint32_t *regs, uint64_t* fpregs,
@@ -87,18 +128,22 @@ void exec(
     uint32_t *fpexc,
     int dump_reg)
 {
-    CPUState *cpu = current_cpu;
-    CPUArchState *env = cpu->env_ptr;
+    CPUState *cpu = NULL;
+    CPUArchState *env = NULL;
     TranslationBlock *tb = NULL, *last_tb = NULL;
     int tb_exit = 0;
     int cflags = 0;
+
+    int cpuid = acquire_cpu();
+    cpu = local_cpus[cpuid];
+
+    current_cpu = cpu;
+    env = cpu->env_ptr;
 
     if (!env) {
         fprintf(stderr, "CPUArchState not initialized.");
         return;
     }
-
-    pthread_mutex_lock(&exec_lock);
 
     const uint32_t cpsr_mask = 0XFF0F03FF;
     const uint32_t fpexc_mask = 0xE0000000;
@@ -169,5 +214,5 @@ void exec(
     *fpexc = (*fpexc) & ~fpexc_mask;
     *fpexc = (env->vfp.xregs[ARM_VFP_FPEXC] & fpexc_mask);
 
-    pthread_mutex_unlock(&exec_lock);
+    release_cpu(cpuid);
 }

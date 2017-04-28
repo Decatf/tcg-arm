@@ -385,11 +385,7 @@ extern struct CPUTailQ cpus;
     QTAILQ_FOREACH_REVERSE(cpu, &cpus, CPUTailQ, node)
 #define first_cpu QTAILQ_FIRST(&cpus)
 
-#if !defined(ANDROID_ARMEMU)
 extern __thread CPUState *current_cpu;
-#else
-extern CPUState *current_cpu;
-#endif
 
 /**
  * cpu_paging_enabled:

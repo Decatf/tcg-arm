@@ -48,11 +48,7 @@
 struct CPUTailQ cpus = QTAILQ_HEAD_INITIALIZER(cpus);
 /* current CPU in the current thread. It is only valid inside
    cpu_exec() */
-#if !defined(ANDROID_ARMEMU)
 __thread CPUState *current_cpu;
-#else
-CPUState *current_cpu;
-#endif
 
 /* 0 = Do not count executed instructions.
    1 = Precise instruction counting.
