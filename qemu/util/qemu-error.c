@@ -52,6 +52,11 @@ void error_printf_unless_qmp(const char *fmt, ...)
         va_end(ap);
     }
 }
+#else
+void error_printf_unless_qmp(const char *fmt, ...)
+{
+    printf("STUB\n");
+}
 #endif //__ANDROID__
 
 static Location std_loc = {
@@ -241,5 +246,10 @@ void error_report(const char *fmt, ...)
     va_start(ap, fmt);
     error_vreport(fmt, ap);
     va_end(ap);
+}
+#else
+void error_report(const char *fmt, ...)
+{
+    printf("STUB error_report\n");
 }
 #endif //__ANDROID__

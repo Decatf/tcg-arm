@@ -32,7 +32,7 @@ extern "C" {
 //$ adb shell stop
 //$ adb shell setprop log.redirect-stdio true
 //$ adb shell start
-#define DEBUG_OUTPUT 1
+#define DEBUG_OUTPUT 0
 //#define DEBUG_OUTPUT_EXTRA 1
 
 #define STR1(x) #x

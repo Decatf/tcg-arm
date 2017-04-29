@@ -112,7 +112,11 @@ static QObject *do_qmp_dispatch(QObject *request, Error **errp)
 QObject *qmp_build_error_object(Error *err)
 {
     return qobject_from_jsonf("{ 'class': %s, 'desc': %s }",
+#if !defined(ANDROID)
                               QapiErrorClass_lookup[error_get_class(err)],
+#else
+                              "STUB",
+#endif
                               error_get_pretty(err));
 }
 

@@ -9414,7 +9414,7 @@ uint32_t HELPER(recpe_u32)(uint32_t a, void *fpstp)
 
     f64 = recip_estimate(f64, s);
 
-    return 0x80000000 | ((float64_val(f64) >> 21) & 0x7fffffff);
+    return 0x80000000 | (((uint64_t)float64_val(f64) >> 21) & 0x7fffffff);
 }
 
 uint32_t HELPER(rsqrte_u32)(uint32_t a, void *fpstp)
@@ -9436,7 +9436,7 @@ uint32_t HELPER(rsqrte_u32)(uint32_t a, void *fpstp)
 
     f64 = recip_sqrt_estimate(f64, fpst);
 
-    return 0x80000000 | ((float64_val(f64) >> 21) & 0x7fffffff);
+    return 0x80000000 | (((uint64_t)float64_val(f64) >> 21) & 0x7fffffff);
 }
 
 /* VFPv4 fused multiply-accumulate */

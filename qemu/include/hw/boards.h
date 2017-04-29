@@ -121,7 +121,9 @@ struct MachineClass {
     const char *default_display;
     GArray *compat_props;
     const char *hw_version;
+#if !defined(CONFIG_USER_ONLY)
     ram_addr_t default_ram_size;
+#endif
     bool option_rom_has_mr;
     bool rom_file_has_mr;
 
@@ -162,8 +164,10 @@ struct MachineState {
     bool enforce_config_section;
     bool enable_graphics;
 
+#if !defined(CONFIG_USER_ONLY)
     ram_addr_t ram_size;
     ram_addr_t maxram_size;
+#endif
     uint64_t   ram_slots;
     const char *boot_order;
     char *kernel_filename;

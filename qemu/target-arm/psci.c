@@ -24,6 +24,7 @@
 #include "arm-powerctl.h"
 #include "exec/exec-all.h"
 
+#ifndef CONFIG_USER_ONLY
 bool arm_is_psci_call(ARMCPU *cpu, int excp_type)
 {
     /* Return true if the r0/x0 value indicates a PSCI call and
@@ -200,3 +201,4 @@ cpu_off:
     /* sanity check in case something failed */
     assert(ret == QEMU_ARM_POWERCTL_RET_SUCCESS);
 }
+#endif

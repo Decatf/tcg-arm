@@ -3,7 +3,7 @@
 #define QEMU_HW_H
 
 #ifdef CONFIG_USER_ONLY
-#error Cannot include hw/hw.h from user emulation
+#warning Cannot include hw/hw.h from user emulation
 #endif
 
 #include "exec/cpu-common.h"

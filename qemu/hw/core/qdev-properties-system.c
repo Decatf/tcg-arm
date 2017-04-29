@@ -67,7 +67,7 @@ static void set_pointer(Object *obj, Visitor *v, Property *prop,
 }
 
 /* --- drive --- */
-
+#if !defined(ANDROID_ARMEMU)
 static void parse_drive(DeviceState *dev, const char *str, void **ptr,
                         const char *propname, Error **errp)
 {
@@ -157,9 +157,9 @@ PropertyInfo qdev_prop_drive = {
     .set   = set_drive,
     .release = release_drive,
 };
-
+#endif
 /* --- character device --- */
-
+#if !defined(ANDROID_ARMEMU)
 static void parse_chr(DeviceState *dev, const char *str, void **ptr,
                       const char *propname, Error **errp)
 {
@@ -218,8 +218,10 @@ PropertyInfo qdev_prop_chr = {
     .set   = set_chr,
     .release = release_chr,
 };
+#endif
 
 /* --- netdev device --- */
+#if !defined(ANDROID_ARMEMU)
 static void get_netdev(Object *obj, Visitor *v, const char *name,
                        void *opaque, Error **errp)
 {
@@ -401,7 +403,7 @@ void qdev_prop_set_drive(DeviceState *dev, const char *name,
 
     object_property_set_str(OBJECT(dev), ref, name, errp);
 }
-
+#endif
 void qdev_prop_set_chr(DeviceState *dev, const char *name,
                        CharDriverState *value)
 {

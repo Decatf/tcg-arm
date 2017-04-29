@@ -25,6 +25,7 @@ ifeq ($(GLIB_BUILD_STATIC),true)
 LOCAL_CFLAGS += $(ARCH_CFLAGS)
 #FIXME: Need to find out why this is failing
 LOCAL_CFLAGS += -include $(FIXUTILS_MEM) -include $(LOGUTILS)
+LOCAL_CFLAGS += -fvisibility=hidden
 LOCAL_STATIC_LIBRARIES += liblimbocompat
 LOCAL_ARM_MODE := $(ARM_MODE)
 

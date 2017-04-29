@@ -583,6 +583,42 @@ BusState *qdev_get_child_bus(DeviceState *dev, const char *name)
     return NULL;
 }
 
+// #if !defined(ANDROID_ARMEMU)
+int qbus_walk_children(BusState *bus,
+                       qdev_walkerfn *pre_devfn, qbus_walkerfn *pre_busfn,
+                       qdev_walkerfn *post_devfn, qbus_walkerfn *post_busfn,
+                       void *opaque)
+{
+    BusChild *kid;
+    int err;
+
+    if (pre_busfn) {
+        err = pre_busfn(bus, opaque);
+        if (err) {
+            return err;
+        }
+    }
+
+    QTAILQ_FOREACH(kid, &bus->children, sibling) {
+        err = qdev_walk_children(kid->child,
+                                 pre_devfn, pre_busfn,
+                                 post_devfn, post_busfn, opaque);
+        if (err < 0) {
+            return err;
+        }
+    }
+
+    if (post_busfn) {
+        err = post_busfn(bus, opaque);
+        if (err) {
+            return err;
+        }
+    }
+
+    return 0;
+}
+// #endif
+
 int qdev_walk_children(DeviceState *dev,
                        qdev_walkerfn *pre_devfn, qbus_walkerfn *pre_busfn,
                        qdev_walkerfn *post_devfn, qbus_walkerfn *post_busfn,
@@ -638,7 +674,7 @@ DeviceState *qdev_find_recursive(BusState *bus, const char *id)
     }
     return NULL;
 }
-
+#if !defined(ANDROID_ARMEMU)
 static char *bus_get_fw_dev_path(BusState *bus, DeviceState *dev)
 {
     BusClass *bc = BUS_GET_CLASS(bus);
@@ -719,7 +755,7 @@ char *qdev_get_dev_path(DeviceState *dev)
 
     return NULL;
 }
-
+#endif
 /**
  * Legacy property handling
  */
@@ -1108,6 +1144,7 @@ static void device_unparent(Object *obj)
         dev->parent_bus = NULL;
     }
 
+#if !defined(ANDROID)
     /* Only send event if the device had been completely realized */
     if (dev->pending_deleted_event) {
         gchar *path = object_get_canonical_path(OBJECT(dev));
@@ -1115,6 +1152,7 @@ static void device_unparent(Object *obj)
         qapi_event_send_device_deleted(!!dev->id, dev->id, path, &error_abort);
         g_free(path);
     }
+#endif
 
     qemu_opts_del(dev->opts);
     dev->opts = NULL;

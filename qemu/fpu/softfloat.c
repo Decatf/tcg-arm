@@ -1819,7 +1819,7 @@ int64_t float32_to_int64_round_to_zero(float32 a, float_status *status)
 | performed according to the IEC/IEEE Standard for Binary Floating-Point
 | Arithmetic.
 *----------------------------------------------------------------------------*/
-
+#if 0
 float64 float32_to_float64(float32 a, float_status *status)
 {
     flag aSign;
@@ -1844,7 +1844,18 @@ float64 float32_to_float64(float32 a, float_status *status)
     return packFloat64( aSign, aExp + 0x380, ( (uint64_t) aSig )<<29 );
 
 }
-
+#else
+float64 float32_to_float64(float32 a, float_status *status)
+{
+    float64 result;
+    asm volatile(
+        "VLDR S4, [%0]\n"
+        "VCVT.F64.F32 D1, S4\n"
+        "VSTR D1, [%1]\n"
+        : : "r"(&a), "r"(&result) : );
+    return result;
+}
+#endif
 /*----------------------------------------------------------------------------
 | Returns the result of converting the single-precision floating-point value
 | `a' to the extended double-precision floating-point format.  The conversion
@@ -1997,7 +2008,7 @@ float32 float32_round_to_int(float32 a, float_status *status)
 | The addition is performed according to the IEC/IEEE Standard for Binary
 | Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
-
+#if 0
 static float32 addFloat32Sigs(float32 a, float32 b, flag zSign,
                               float_status *status)
 {
@@ -2157,13 +2168,13 @@ static float32 subFloat32Sigs(float32 a, float32 b, flag zSign,
     return normalizeRoundAndPackFloat32(zSign, zExp, zSig, status);
 
 }
-
+#endif
 /*----------------------------------------------------------------------------
 | Returns the result of adding the single-precision floating-point values `a'
 | and `b'.  The operation is performed according to the IEC/IEEE Standard for
 | Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
-
+#if 0
 float32 float32_add(float32 a, float32 b, float_status *status)
 {
     flag aSign, bSign;
@@ -2338,7 +2349,44 @@ float32 float32_div(float32 a, float32 b, float_status *status)
     return roundAndPackFloat32(zSign, zExp, zSig, status);
 
 }
-
+#else
+float32 float32_add(float32 a, float32 b, float_status *status)
+{
+    float *a_ = (float*)&a;
+    float *b_ = (float*)&b;
+    float64 c;
+    float *c_ = (float*)&c;
+    *c_ = (*a_) + (*b_);
+    return c;
+}
+float32 float32_sub(float32 a, float32 b, float_status *status)
+{
+    float *a_ = (float*)&a;
+    float *b_ = (float*)&b;
+    float64 c;
+    float *c_ = (float*)&c;
+    *c_ = (*a_) - (*b_);
+    return c;
+}
+float32 float32_mul(float32 a, float32 b, float_status *status)
+{
+    float *a_ = (float*)&a;
+    float *b_ = (float*)&b;
+    float64 c;
+    float *c_ = (float*)&c;
+    *c_ = (*a_) * (*b_);
+    return c;
+}
+float32 float32_div(float32 a, float32 b, float_status *status)
+{
+    float *a_ = (float*)&a;
+    float *b_ = (float*)&b;
+    float64 c;
+    float *c_ = (float*)&c;
+    *c_ = (*a_) / (*b_);
+    return c;
+}
+#endif
 /*----------------------------------------------------------------------------
 | Returns the remainder of the single-precision floating-point value `a'
 | with respect to the corresponding value `b'.  The operation is performed
@@ -2672,7 +2720,7 @@ float32 float32_muladd(float32 a, float32 b, float32 c, int flags,
 | The operation is performed according to the IEC/IEEE Standard for Binary
 | Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
-
+#if 0
 float32 float32_sqrt(float32 a, float_status *status)
 {
     flag aSign;
@@ -2723,7 +2771,18 @@ float32 float32_sqrt(float32 a, float_status *status)
     return roundAndPackFloat32(0, zExp, zSig, status);
 
 }
-
+#else
+float32 float32_sqrt(float32 a, float_status *status)
+{
+    float32 result;
+    asm volatile(
+        "VLDR S1, [%0]\n"
+        "VSQRT.F32 S2, S1\n"
+        "VSTR S2, [%1]\n"
+        : : "r"(&a),"r"(&result) : );
+    return result;
+}
+#endif
 /*----------------------------------------------------------------------------
 | Returns the binary exponential of the single-precision floating-point value
 | `a'. The operation is performed according to the IEC/IEEE Standard for
@@ -3309,7 +3368,7 @@ int64_t float64_to_int64_round_to_zero(float64 a, float_status *status)
 | performed according to the IEC/IEEE Standard for Binary Floating-Point
 | Arithmetic.
 *----------------------------------------------------------------------------*/
-
+#if 0
 float32 float64_to_float32(float64 a, float_status *status)
 {
     flag aSign;
@@ -3336,7 +3395,18 @@ float32 float64_to_float32(float64 a, float_status *status)
     return roundAndPackFloat32(aSign, aExp, zSig, status);
 
 }
-
+#else
+float32 float64_to_float32(float64 a, float_status *status)
+{
+    float32 result;
+    asm volatile(
+        "VLDR D1, [%0]\n"
+        "VCVT.F32.F64 S4, D1\n"
+        "VSTR S4, [%1]\n"
+        : : "r"(&a), "r"(&result) : );
+    return result;
+}
+#endif
 
 /*----------------------------------------------------------------------------
 | Packs the sign `zSign', exponent `zExp', and significand `zSig' into a
@@ -3479,7 +3549,7 @@ static void normalizeFloat16Subnormal(uint32_t aSig, int *zExpPtr,
 
 /* Half precision floats come in two formats: standard IEEE and "ARM" format.
    The latter gains extra exponent range by omitting the NaN/Inf encodings.  */
-
+#if 0
 float32 float16_to_float32(float16 a, flag ieee, float_status *status)
 {
     flag aSign;
@@ -3550,7 +3620,28 @@ float16 float32_to_float16(float32 a, flag ieee, float_status *status)
 
     return roundAndPackFloat16(aSign, aExp, aSig, ieee, status);
 }
-
+#else
+float16 float32_to_float16(float32 a, flag ieee, float_status *status)
+{
+    float16 result = 0;
+    asm volatile(
+        "VLDR S4, [%0]\n"
+        "VCVTB.F16.F32 S5, S4\n"
+        "VSTR S5, [%1]\n"
+        : : "r"(&a), "r"(&result) : );
+    return result;
+}
+float32 float16_to_float32(float16 a, flag ieee, float_status *status)
+{
+    float32 result = 0;
+    asm volatile(
+        "VLDR S4, [%0]\n"
+        "VCVTB.F32.F16 S5, S4\n"
+        "VSTR S5, [%1]\n"
+        : : "r"(&a), "r"(&result) : );
+    return result;
+}
+#endif
 float64 float16_to_float64(float16 a, flag ieee, float_status *status)
 {
     flag aSign;
@@ -3792,7 +3883,7 @@ float64 float64_trunc_to_int(float64 a, float_status *status)
 | The addition is performed according to the IEC/IEEE Standard for Binary
 | Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
-
+#if 0
 static float64 addFloat64Sigs(float64 a, float64 b, flag zSign,
                               float_status *status)
 {
@@ -3952,13 +4043,13 @@ static float64 subFloat64Sigs(float64 a, float64 b, flag zSign,
     return normalizeRoundAndPackFloat64(zSign, zExp, zSig, status);
 
 }
-
+#endif
 /*----------------------------------------------------------------------------
 | Returns the result of adding the double-precision floating-point values `a'
 | and `b'.  The operation is performed according to the IEC/IEEE Standard for
 | Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
-
+#if 0
 float64 float64_add(float64 a, float64 b, float_status *status)
 {
     flag aSign, bSign;
@@ -4139,7 +4230,44 @@ float64 float64_div(float64 a, float64 b, float_status *status)
     return roundAndPackFloat64(zSign, zExp, zSig, status);
 
 }
-
+#else
+float64 float64_add(float64 a, float64 b, float_status *status)
+{
+    double *a_ = (double*)&a;
+    double *b_ = (double*)&b;
+    float64 c;
+    double *c_ = (double*)&c;
+    *c_ = (*a_) + (*b_);
+    return c;
+}
+float64 float64_sub(float64 a, float64 b, float_status *status)
+{
+    double *a_ = (double*)&a;
+    double *b_ = (double*)&b;
+    float64 c;
+    double *c_ = (double*)&c;
+    *c_ = (*a_) - (*b_);
+    return c;
+}
+float64 float64_mul(float64 a, float64 b, float_status *status)
+{
+    double *a_ = (double*)&a;
+    double *b_ = (double*)&b;
+    float64 c;
+    double *c_ = (double*)&c;
+    *c_ = (*a_) * (*b_);
+    return c;
+}
+float64 float64_div(float64 a, float64 b, float_status *status)
+{
+    double *a_ = (double*)&a;
+    double *b_ = (double*)&b;
+    float64 c;
+    double *c_ = (double*)&c;
+    *c_ = (*a_) / (*b_);
+    return c;
+}
+#endif
 /*----------------------------------------------------------------------------
 | Returns the remainder of the double-precision floating-point value `a'
 | with respect to the corresponding value `b'.  The operation is performed
@@ -4480,7 +4608,7 @@ float64 float64_muladd(float64 a, float64 b, float64 c, int flags,
 | The operation is performed according to the IEC/IEEE Standard for Binary
 | Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
-
+#if 0
 float64 float64_sqrt(float64 a, float_status *status)
 {
     flag aSign;
@@ -4528,7 +4656,18 @@ float64 float64_sqrt(float64 a, float_status *status)
     return roundAndPackFloat64(0, zExp, zSig, status);
 
 }
-
+#else
+float64 float64_sqrt(float64 a, float_status *status)
+{
+    float64 result;
+    asm volatile(
+        "VLDR D1, [%0]\n"
+        "VSQRT.F64 D2, D1\n"
+        "VSTR D2, [%1]\n"
+        : : "r"(&a), "r"(&result) : );
+    return result;
+}
+#endif
 /*----------------------------------------------------------------------------
 | Returns the binary log of the double-precision floating-point value `a'.
 | The operation is performed according to the IEC/IEEE Standard for Binary

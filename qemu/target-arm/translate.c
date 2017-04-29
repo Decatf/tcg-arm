@@ -11875,7 +11875,8 @@ void gen_intermediate_code(CPUARMState *env, TranslationBlock *tb)
         end_of_page = (dc->pc >= next_page_start) ||
             ((dc->pc >= next_page_start - 3) && insn_crosses_page(env, dc));
 
-    } while (!dc->is_jmp && !tcg_op_buf_full() &&
+    }
+    while (!dc->is_jmp && !tcg_op_buf_full() &&
              !cs->singlestep_enabled &&
              !singlestep &&
              !dc->ss_active &&

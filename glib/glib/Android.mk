@@ -101,6 +101,7 @@ ifeq ($(GLIB_BUILD_STATIC),true)
 
 # LOCAL_CLANG := false
 LOCAL_CFLAGS += -Wno-format-security
+LOCAL_CFLAGS += -fvisibility=hidden
 LOCAL_EXPORT_C_INCLUDE_DIRS := $(GLIB_C_INCLUDES)
 
 include $(BUILD_STATIC_LIBRARY)

@@ -515,6 +515,7 @@ static int memtox(char *buf, const char *mem, int len)
     return p - buf;
 }
 
+#if !defined(ANDROID_ARMEMU)
 static const char *get_feature_xml(const char *p, const char **newp,
                                    CPUClass *cc)
 {
@@ -565,6 +566,14 @@ static const char *get_feature_xml(const char *p, const char **newp,
     }
     return name ? xml_builtin[i][1] : NULL;
 }
+#else
+static const char *get_feature_xml(const char *p, const char **newp,
+                                   CPUClass *cc)
+{
+    printf("STUB get_feature_xml\n");
+    return NULL;
+}
+#endif
 
 static int gdb_read_register(CPUState *cpu, uint8_t *mem_buf, int reg)
 {

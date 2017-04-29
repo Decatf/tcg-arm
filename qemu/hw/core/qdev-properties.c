@@ -2,7 +2,9 @@
 #include "net/net.h"
 #include "hw/qdev.h"
 #include "qapi/error.h"
+#if !defined(ANDROID_ARMEMU)
 #include "hw/pci/pci.h"
+#endif
 #include "qapi/qmp/qerror.h"
 #include "qemu/error-report.h"
 #include "sysemu/block-backend.h"
@@ -529,7 +531,7 @@ PropertyInfo qdev_prop_on_off_auto = {
 };
 
 /* --- lost tick policy --- */
-
+#if !defined(ANDROID)
 QEMU_BUILD_BUG_ON(sizeof(LostTickPolicy) != sizeof(int));
 
 PropertyInfo qdev_prop_losttickpolicy = {
@@ -538,7 +540,7 @@ PropertyInfo qdev_prop_losttickpolicy = {
     .get   = get_enum,
     .set   = set_enum,
 };
-
+#endif
 /* --- Block device error handling policy --- */
 
 QEMU_BUILD_BUG_ON(sizeof(BlockdevOnError) != sizeof(int));
@@ -553,7 +555,7 @@ PropertyInfo qdev_prop_blockdev_on_error = {
 };
 
 /* --- BIOS CHS translation */
-
+#if !defined(ANDROID)
 QEMU_BUILD_BUG_ON(sizeof(BiosAtaTranslation) != sizeof(int));
 
 PropertyInfo qdev_prop_bios_chs_trans = {
@@ -564,7 +566,7 @@ PropertyInfo qdev_prop_bios_chs_trans = {
     .get = get_enum,
     .set = set_enum,
 };
-
+#endif
 /* --- FDC default drive types */
 
 PropertyInfo qdev_prop_fdc_drive_type = {
@@ -698,7 +700,7 @@ PropertyInfo qdev_prop_blocksize = {
 };
 
 /* --- pci host address --- */
-
+#if !defined(ANDROID_ARMEMU)
 static void get_pci_host_devaddr(Object *obj, Visitor *v, const char *name,
                                  void *opaque, Error **errp)
 {
@@ -805,7 +807,7 @@ PropertyInfo qdev_prop_pci_host_devaddr = {
     .get = get_pci_host_devaddr,
     .set = set_pci_host_devaddr,
 };
-
+#endif
 /* --- support for array properties --- */
 
 /* Used as an opaque for the object properties we add for each

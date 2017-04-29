@@ -24,7 +24,9 @@
 #include "exec/tb-context.h"
 
 /* allow to see translation results - the slowdown should be negligible, so we leave it */
+#if !defined(ANDROID_ARMEMU)
 #define DEBUG_DISAS
+#endif
 
 /* Page tracking code uses ram addresses in system mode, and virtual
    addresses in userspace mode.  Define tb_page_addr_t to be an appropriate

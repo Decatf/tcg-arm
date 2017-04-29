@@ -34,6 +34,8 @@ LOCAL_ARM_MODE := $(ARM_MODE)
 #No optimization for memmove
 LOCAL_CFLAGS += -O0
 
+LOCAL_CFLAGS += -fvisibility=hidden
+
 LOCAL_SHARED_LIBRARIES := 
 LOCAL_STATIC_LIBRARIES := 
 

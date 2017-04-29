@@ -223,6 +223,7 @@ typedef union {
      } l;
 } CPU_LDoubleU;
 
+#if defined(CONFIG_SOFTFLOAT)
 typedef union {
     float128 q;
 #if defined(HOST_WORDS_BIGENDIAN)
@@ -249,6 +250,7 @@ typedef union {
     } ll;
 #endif
 } CPU_QuadU;
+#endif
 
 /* unaligned/endian-independent pointer access */
 

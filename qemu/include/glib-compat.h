@@ -16,6 +16,7 @@
 #ifndef QEMU_GLIB_COMPAT_H
 #define QEMU_GLIB_COMPAT_H
 
+#include <gtypes.h>
 #include <glib.h>
 
 /* GLIB version compatibility flags */
@@ -24,6 +25,9 @@
 //LIMBO: Already defined in Limbo glib version
 #undef G_TIME_SPAN_SECOND
 #endif //__LIMBO__
+#ifdef ANDROID_ARMEMU
+#undef G_TIME_SPAN_SECOND
+#endif /* ANDROID_ARMEMU */
 #define G_TIME_SPAN_SECOND              (G_GINT64_CONSTANT(1000000))
 #endif
 

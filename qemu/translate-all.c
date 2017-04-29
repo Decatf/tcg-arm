@@ -122,7 +122,9 @@ TCGContext tcg_ctx;
 
 /* translation block context */
 #ifdef CONFIG_USER_ONLY
-__thread int have_tb_lock;
+// __thread int have_tb_lock;
+// #elif defined(ANDROID_ARMEMU)
+static int have_tb_lock;
 #endif
 
 void tb_lock(void)
