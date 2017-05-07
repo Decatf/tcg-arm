@@ -145,7 +145,8 @@ void exec(
         return;
     }
 
-    const uint32_t cpsr_mask = 0XFF0F03FF;
+    const uint32_t cpsr_mask = 0xFFFFFFFF;
+    const uint32_t fpscr_mask = 0xF7F7009F;
     const uint32_t fpexc_mask = 0xE0000000;
     cpsr_write(env, *cpsr, cpsr_mask, CPSRWriteRaw);
     vfp_set_fpscr(env, *fpscr);
@@ -208,11 +209,12 @@ void exec(
     memcpy(fpregs, env->vfp.regs, 32*sizeof(uint64_t));
     memcpy(regs, env->regs, 16*sizeof(uint32_t));
 
-    *fpscr = vfp_get_fpscr(env);
+    *fpscr = (*fpscr) & ~fpscr_mask;
+    *fpscr |= vfp_get_fpscr(env) & fpscr_mask;
     *cpsr = (*cpsr) & ~cpsr_mask;
-    *cpsr = cpsr_read(env) & cpsr_mask;
+    *cpsr |= cpsr_read(env) & cpsr_mask;
     *fpexc = (*fpexc) & ~fpexc_mask;
-    *fpexc = (env->vfp.xregs[ARM_VFP_FPEXC] & fpexc_mask);
+    *fpexc |= (env->vfp.xregs[ARM_VFP_FPEXC] & fpexc_mask);
 
     release_cpu(cpuid);
 }
