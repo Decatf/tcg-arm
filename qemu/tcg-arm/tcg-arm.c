@@ -94,7 +94,7 @@ int init_tcg_arm(void)
 
 inline int acquire_cpu(void)
 {
-    int cpuid;
+    int cpuid = -1;
     do {
         for (int i = 0; i < N_CPUS; i++)
         {
