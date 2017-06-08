@@ -8,13 +8,9 @@ LOCAL_ARM_MODE:= $(APP_ARM_MODE)
 
   
 LOCAL_SRC_FILES := \
+	limbo_compat_memmove.c \
 	limbo_compat_fd.c \
 	limbo_compat.c
-
-ifeq ($(CONFIG_COMPAT_MEMMOVE), true)
-LOCAL_SRC_FILES += \
-	limbo_compat_memmove.c
-endif
 
 # For backwards compatibility with 1.2	
 #LOCAL_SRC_FILES := \
@@ -35,10 +31,8 @@ LOCAL_CFLAGS += $(ARCH_CFLAGS)
 LOCAL_CFLAGS += -include limbo_logutils.h
 LOCAL_ARM_MODE := $(ARM_MODE)
 
-ifeq ($(CONFIG_COMPAT_MEMMOVE), true)
 #No optimization for memmove
 LOCAL_CFLAGS += -O0
-endif
 
 LOCAL_CFLAGS += -fvisibility=hidden
 
