@@ -30,6 +30,9 @@
 #include "qapi/qmp/qint.h"
 #include "qapi/qmp/qstring.h"
 
+#define TAG "tcg-arm-qom-object"
+#include "../tcg-arm/android_log_helper.h"
+
 #define MAX_INTERFACES 32
 
 typedef struct InterfaceImpl InterfaceImpl;
@@ -101,9 +104,12 @@ static TypeImpl *type_new(const TypeInfo *info)
     int i;
 
     g_assert(info->name != NULL);
-
     if (type_table_lookup(info->name) != NULL) {
+#if defined(ANDROID_ARMEMU)
+        LOGE("%s() Registering `%s' which already exists\n", __func__, info->name);
+#else
         fprintf(stderr, "Registering `%s' which already exists\n", info->name);
+#endif
         abort();
     }
 
