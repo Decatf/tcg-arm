@@ -1368,6 +1368,7 @@ typedef struct ARMCPUInfo {
 } ARMCPUInfo;
 
 static const ARMCPUInfo arm_cpus[] = {
+#if !defined(DANDROID_ARMEMU)
 #if !defined(CONFIG_USER_ONLY) || !defined(TARGET_AARCH64)
     { .name = "arm926",      .initfn = arm926_initfn },
     { .name = "arm946",      .initfn = arm946_initfn },
@@ -1408,6 +1409,9 @@ static const ARMCPUInfo arm_cpus[] = {
     { .name = "any",         .initfn = arm_any_initfn },
 #endif
 #endif
+#else /* !ANDROID_ARMEMU */
+    { .name = "any",         .initfn = arm_any_initfn },
+#endif /* !ANDROID_ARMEMU */
     { .name = NULL }
 };
 
