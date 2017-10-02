@@ -40,10 +40,9 @@ int init_tcg_arm(void)
     CPUArchState *env;
     char **target_environ, **wrk;
     int i;
-    int ret;
 
     if (initialized) {
-        return 0;
+        return -1;
     }
 
     module_call_init(MODULE_INIT_QOM);
@@ -89,7 +88,7 @@ int init_tcg_arm(void)
 
     current_cpu = NULL;
     initialized = true;
-    return initialized;
+    return 0;
 }
 
 inline int acquire_cpu(void)
