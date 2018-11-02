@@ -228,7 +228,7 @@ struct CPUWatchpoint {
 struct KVMState;
 struct kvm_run;
 
-#define TB_JMP_CACHE_BITS 12
+#define TB_JMP_CACHE_BITS 21
 #define TB_JMP_CACHE_SIZE (1 << TB_JMP_CACHE_BITS)
 
 /* work queue */
