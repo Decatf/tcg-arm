@@ -12,5 +12,6 @@ void pre_cpu_exec(CPUState *cpu);
 void post_cpu_exec(CPUState *cpu);
 tcg_target_ulong cpu_tb_exec(CPUState *cpu, TranslationBlock *itb);
 
+int guess_icount(CPUState *cpu);
 
 #endif /* __CPU_EXEC_H__*/

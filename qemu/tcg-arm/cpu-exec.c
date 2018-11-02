@@ -257,3 +257,216 @@ tcg_target_ulong cpu_tb_exec(CPUState *cpu, TranslationBlock *itb)
     }
     return ret;
 }
+
+/* Load an instruction and return it in the standard little-endian order */
+static inline uint32_t arm_ldl_code(CPUARMState *env, target_ulong addr,
+                                    bool sctlr_b)
+{
+    uint32_t insn = cpu_ldl_code(env, addr);
+    if (bswap_code(sctlr_b)) {
+        return bswap32(insn);
+    }
+    return insn;
+}
+
+/* Ditto, for a halfword (Thumb) instruction */
+static inline uint16_t arm_lduw_code(CPUARMState *env, target_ulong addr,
+                                     bool sctlr_b)
+{
+    uint16_t insn = cpu_lduw_code(env, addr);
+    if (bswap_code(sctlr_b)) {
+        return bswap16(insn);
+    }
+    return insn;
+}
+
+/* extracted from disas_arm_insn() */
+static inline int is_arm_neon(uint32_t insn) {
+    int cond;
+    int handle_insn = 0;
+
+    cond = insn >> 28;
+
+    if (cond == 0xf) {
+        if (((insn >> 25) & 7) == 1) {
+            // if (disas_neon_data_insn(s, insn)) { }
+            handle_insn = 1;
+        }
+        if ((insn & 0x0f100000) == 0x04000000) {
+            // if (disas_neon_ls_insn(s, insn)) { }
+            handle_insn = 1;
+        }
+        if ((insn & 0x0f000e10) == 0x0e000a00) {
+            // if (disas_vfp_insn(s, insn)) { }
+            handle_insn = 1;
+        }
+    }
+
+    if ((insn & 0x0f900000) == 0x03000000) {
+    } else if ((insn & 0x0f900000) == 0x01000000
+               && (insn & 0x00000090) != 0x00000090) {
+    } else if (((insn & 0x0e000000) == 0 &&
+               (insn & 0x00000090) != 0x90) ||
+               ((insn & 0x0e000000) == (1 << 25))) {
+    } else {
+        unsigned int op1 = (insn >> 24) & 0xf;
+        switch(op1) {
+        case 0xc:
+        case 0xd:
+        case 0xe:
+            if (((insn >> 8) & 0xe) == 10) {
+                // if (disas_vfp_insn(s, insn)) { }
+                handle_insn = 1;
+            }
+        }
+    }
+
+    return handle_insn;
+}
+
+/* extracted from disas_thumb2_insn() */
+static inline int is_thumb2_neon(CPUARMState *env, target_ulong pc, int sctlr_b, uint16_t insn_hw1)
+{
+    uint32_t insn;
+
+    // // if (!(arm_dc_feature(s, ARM_FEATURE_THUMB2)
+    // //       || arm_dc_feature(s, ARM_FEATURE_M))) {
+    // if (1) {
+    //     insn = insn_hw1;
+    //     if ((insn & (1 << 12)) == 0) {
+    //         return 0;
+    //     }
+    //     if (insn & (1 << 11)) {
+    //         return 0;
+    //     }
+    //     if ((pc & ~TARGET_PAGE_MASK) == 0) {
+    //         return 0;
+    //     }
+    //     /* Fall through */
+    // }
+
+    insn = arm_lduw_code(env, pc, sctlr_b);
+    insn |= (uint32_t)insn_hw1 << 16;
+
+    switch ((insn >> 25) & 0xf) {
+    case 6: case 7: case 14: case 15:
+        /* Coprocessor.  */
+        if (((insn >> 24) & 3) == 3) {
+            // if (disas_neon_data_insn(s, insn)) { }
+            return 1;
+        } else if (((insn >> 8) & 0xe) == 10) {
+            // if (disas_vfp_insn(s, insn)) { }
+            return 1;
+        } 
+
+    case 12: /* Load/store single data item.  */
+        if ((insn & 0x01100000) == 0x01000000) {
+            // if (disas_neon_ls_insn(s, insn)) { }
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+/* extracted from disas_thumb2_insn() */
+static inline int is_thumb_neon(CPUARMState *env, target_ulong pc, int sctlr_b, uint16_t insn)
+{
+    int handle_insn = 0;
+
+    switch (insn >> 12) {
+    case 14:
+        if (insn & (1 << 11)) {
+            // if (disas_thumb2_insn(env, s, insn))
+            handle_insn = is_thumb2_neon(env, pc, sctlr_b, insn);
+        }
+    case 15:
+        // if (disas_thumb2_insn(env, s, insn))
+        handle_insn = is_thumb2_neon(env, pc, sctlr_b, insn);
+    }
+
+    return handle_insn;
+}
+
+/* count the number of consecutive NEON instructions */
+int neon_icount(CPUState *cpu, target_ulong pc, uint32_t flags)
+{
+    CPUArchState *env = (CPUArchState *)cpu->env_ptr;
+    uint32_t cpsr;
+    int thumb;
+    int sctlr_b;
+    int icount = 0;
+
+    cpsr = cpsr_read(env) & 0xFFFFFFFF;
+    thumb = !!(cpsr & CPSR_T);
+    sctlr_b = ARM_TBFLAG_SCTLR_B(flags);
+
+    if (!thumb) {
+        do {
+            int handle_insn;
+            uint32_t insn;
+
+            insn = arm_ldl_code(env, pc, sctlr_b);
+            handle_insn = is_arm_neon(insn);
+
+            if (handle_insn) {
+                pc += 4;
+                icount++;
+                continue;
+            } else {
+                break;
+            }
+        } while (1);
+    } else {
+
+        // do {
+        //     int handle_insn = 0;
+        //     uint16_t insn;
+
+        //     insn = arm_lduw_code(env, pc, sctlr_b);
+        //     pc += 2;
+
+        //     LOGE("%s: insn = 0x%X", __func__, insn & 0xFFFF);
+
+        //     handle_insn = is_thumb_neon(env, pc, sctlr_b, insn);
+
+        //     if (handle_insn) {
+        //         pc += 2;
+        //         icount++;
+        //         continue;
+        //     } else {
+        //         break;
+        //     }
+        // } while (1);
+        // LOGE("neon_icount() thumb: icount = %d\n", icount);
+
+        icount = 1;
+    }
+
+    if (icount == 0) {
+      LOGE("neon_icount() oops icount = %d\n", icount); 
+      icount = 1;
+    }
+
+    return icount;
+}
+
+int guess_icount(CPUState *cpu)
+{
+    CPUArchState *env = (CPUArchState *)cpu->env_ptr;
+    TranslationBlock *tb;
+    target_ulong cs_base, pc;
+    uint32_t flags;
+    int icount = 1;
+
+    cpu_get_tb_cpu_state(env, &pc, &cs_base, (uint32_t*)&flags);
+    tb_lock();
+    tb = cpu->tb_jmp_cache[tb_jmp_cache_hash_func(pc)];
+    if (unlikely(!tb || tb->pc != pc || tb->cs_base != cs_base ||
+                 tb->flags != flags)) {
+        icount = neon_icount(cpu, pc, flags);
+    }
+
+    tb_unlock();
+    return icount;
+}

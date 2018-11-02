@@ -132,8 +132,10 @@ void exec(
     TranslationBlock *tb = NULL, *last_tb = NULL;
     int tb_exit = 0;
     int cflags = 0;
+    int cpuid;
+    int icount = 1;
 
-    int cpuid = acquire_cpu();
+    cpuid = acquire_cpu();
     cpu = local_cpus[cpuid];
 
     current_cpu = cpu;
@@ -159,7 +161,8 @@ void exec(
 
     pre_cpu_exec(cpu);
 
-    cflags = CF_COUNT_MASK & 1;
+    icount = guess_icount(cpu);
+    cflags = CF_COUNT_MASK & icount;
     tb = tb_find_fast(cpu,  &last_tb, tb_exit, cflags);
     
     do {
@@ -200,6 +203,8 @@ void exec(
         tb = tb_from_cache(env);
         if (tb != NULL) {
             last_tb = prev_tb;
+            icount = guess_icount(cpu);
+            cflags = CF_COUNT_MASK & icount;
             tb = tb_find_fast(cpu,  &last_tb, tb_exit, cflags);
         }
     } while (tb);
